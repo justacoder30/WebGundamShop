@@ -74,7 +74,6 @@ namespace WebGundamShop.Areas.Admin.Controllers
 					var user = await _userManager.FindByEmailAsync(appUser.Email);
 					var role = _roleManager.FindByIdAsync(appUser.RoleId);
 					var addToRole = await _userManager.AddToRoleAsync(user, role.Result.Name);
-					user.PasswordHash = appUser.PasswordHash;
 					await _userManager.UpdateAsync(user);
 					if (!addToRole.Succeeded) AddIdentityErrors(createUser);
 					TempData["success"] = "Cập nhập người dùng thành công.";
