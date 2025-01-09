@@ -76,10 +76,6 @@ namespace WebGundamShop.Controllers
 					var addToRole = await _userManager.AddToRoleAsync(user, role.Result.Name);
 					return Redirect("/account/login");
 				} 
-				else
-				{
-
-				}
 				foreach(IdentityError error in result.Errors)
 				{
 					ModelState.AddModelError("", error.Description);

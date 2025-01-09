@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 using System.Drawing.Drawing2D;
 using WebGundamShop.Models;
 using WebGundamShop.Repostitory;
@@ -39,15 +40,6 @@ namespace WebGundamShop.Areas.Admin.Controllers
             return View(usersWithRoles);
         }
 
-        [HttpGet]
-		[Route("Create")]
-		public async Task<IActionResult> Create()
-        {
-            var roles = await _roleManager.Roles.ToListAsync();
-            ViewBag.Roles = new SelectList(roles, "Id", "Name");
-            return View(new AppUserModel());
-        }
-
 		[HttpGet]
 		[Route("Edit")]
 		public async Task<IActionResult> Edit(string Id)
@@ -71,30 +63,38 @@ namespace WebGundamShop.Areas.Admin.Controllers
 		[Route("Edit")]
 		public async Task<IActionResult> Edit(string Id, AppUserModel appUser)
 		{
-			var currentUser = await _userManager.FindByIdAsync(Id); 
+			var currentUser = await _userManager.FindByIdAsync(Id);
 			if (currentUser == null) return NotFound();
+			await _userManager.DeleteAsync(currentUser);
 			if(ModelState.IsValid)
 			{
-				currentUser.UserName = appUser.UserName;
-				currentUser.Email = appUser.Email;
-				currentUser.PhoneNumber = appUser.PhoneNumber;
-				currentUser.RoleId = appUser.RoleId;
-				var update = await _userManager.UpdateAsync(currentUser);
-				if (update.Succeeded)
+				var createUser = await _userManager.CreateAsync(appUser);
+				if (createUser.Succeeded)
 				{
+					var user = await _userManager.FindByEmailAsync(appUser.Email);
+					var role = _roleManager.FindByIdAsync(appUser.RoleId);
+					var addToRole = await _userManager.AddToRoleAsync(user, role.Result.Name);
+					user.PasswordHash = appUser.PasswordHash;
+					await _userManager.UpdateAsync(user);
+					if (!addToRole.Succeeded) AddIdentityErrors(createUser);
 					TempData["success"] = "Cập nhập người dùng thành công.";
 					return RedirectToAction("Index", "User");
 				}
-
-				AddIdentityErrors(update);
-
-				return View(currentUser);
 			}
 			TempData["error"] = "Model validation failed.";
 			var errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)).ToList();
 			string errorMessage = string.Join("\n", errors);
 
-			return View(currentUser);
+			return RedirectToAction("Index", "User");
+		}
+
+		[HttpGet]
+		[Route("Create")]
+		public async Task<IActionResult> Create()
+		{
+			var roles = await _roleManager.Roles.ToListAsync();
+			ViewBag.Roles = new SelectList(roles, "Id", "Name");
+			return View(new AppUserModel());
 		}
 
 		[HttpPost]

@@ -70,7 +70,6 @@
 								<li><a asp-controller="Cart" asp-action="Index">Cart</a></li>
 								@if (User.Identity?.IsAuthenticated ?? false)
 								{
-									
 									<li class="dropdown">
 										<a class="dropdown-toggle" data-toggle="dropdown" href="#">
 											Account
@@ -81,6 +80,7 @@
 											@* <li><a class="dropdown-item" asp-action="UpdateAccount" asp-controller="Account">Update Account</a></li> *@
 										</ul>
 									</li>
+									<li><a asp-area="Admin" asp-controller="Product" asp-action="Index"><i></i>Manager</a></li>
 									<li><a asp-controller="Account" asp-action="Logout"><i class="fa fa-lock"></i>Hi @User.Identity.Name Logout</a></li>
 								}
 								else
